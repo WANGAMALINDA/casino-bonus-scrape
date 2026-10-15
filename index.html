@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casino welcome bonuses</title>
+<style>
+  :root { --bg:#fff; --fg:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#0b6b4f; --warn:#b45309; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#111; --fg:#eee; --muted:#999; --line:#2a2a2a; --accent:#4ade9d; --warn:#fbbf24; }
+  }
+  body { font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--fg); margin:0; padding:2rem 1rem; }
+  main { max-width:900px; margin:0 auto; }
+  h1 { margin:0 0 .25rem; font-size:1.6rem; }
+  p.sub { color:var(--muted); margin:0 0 1.5rem; font-size:.9rem; }
+  .wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; min-width:560px; }
+  th, td { text-align:left; padding:.7rem .6rem; border-bottom:1px solid var(--line); }
+  th { font-size:.8rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  td.bonus { font-weight:600; color:var(--accent); }
+  a { color:var(--accent); }
+  .flag { color:var(--warn); font-size:.8rem; }
+  #msg { color:var(--muted); }
+  @media (max-width:650px) {
+    body { padding:1rem .5rem; }
+    h1 { font-size:1.35rem; }
+    th, td { padding:.55rem .4rem; font-size:.85rem; }
+    th { font-size:.7rem; }
+    table { min-width:640px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Casino welcome bonuses</h1>
+  <p class="sub" id="updated">Loading…</p>
+  <div class="wrap">
+    <table>
+      <thead><tr><th>Casino</th><th>Welcome bonus</th><th>Currency</th><th>Wagering</th><th>Min. deposit</th><th>Data</th><th>Source</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p id="msg"></p>
+</main>
+<script>
+  const esc = s => String(s ?? "—").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  fetch("bonuses.json")
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => {
+      if (!Array.isArray(data) || data.length < 3) {
+        throw new Error("bonuses.json must contain at least three casinos");
+      }
+      document.getElementById("rows").innerHTML = data.slice(0, 3).map(c => `
+        <tr>
+          <td>${esc(c.casino)} ${c.needs_review ? '<div class="flag">needs review</div>' : ""}</td>
+          <td class="bonus">${esc(c.welcome_bonus)}</td>
+          <td>${esc(c.currency)}</td>
+          <td>${c.wagering_multiplier != null ? esc(c.wagering_multiplier) + "x" : "—"}</td>
+          <td>${esc(c.min_deposit)}</td>
+          <td>${esc(c.data_source)}${c.api_updated ? `<div class="flag">updated ${esc(c.api_updated)}</div>` : ""}${c.verification ? `<div>${esc(c.verification)}</div>` : ""}</td>
+          <td><a href="${esc(c.source_url)}" target="_blank" rel="noopener noreferrer">page</a></td>
+        </tr>`).join("");
+      const latest = data.map(c => c.scraped_at).sort().pop();
+      document.getElementById("updated").textContent =
+        latest ? "Last updated " + new Date(latest).toLocaleString() : "";
+    })
+    .catch(() => {
+      document.getElementById("updated").textContent = "";
+      document.getElementById("msg").textContent =
+        "Could not load bonuses.json. Run the scraper first, then serve this folder with: python -m http.server";
+    });
+</script>
+</body>
+</html>
