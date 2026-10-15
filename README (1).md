@@ -1,5 +1,10 @@
 # Casino bonus scraper
 
+## Submission links
+
+- Live page: https://wangamalinda.github.io/casino-bonus-scrape/
+- Git repository: https://github.com/WANGAMALINDA/casino-bonus-scrape
+
 ## Run it
 
 ```bash
@@ -12,6 +17,9 @@ $env:GEMINI_API_KEY="your-replacement-key" # Windows PowerShell
 python scraper.py                   # writes bonuses.json
 python -m http.server               # open http://localhost:8000
 ```
+
+The scraper writes the extracted records to `bonuses.json`; the static page reads that file.
+The fallback source is configured in `sources.json`. Never commit an API key.
 
 ## Publish the page for free
 
@@ -62,3 +70,16 @@ The last known-good record would remain visible but become stale after 48 hours.
 Estimated monthly cost: €15–25 for the VPS, €1–3 for backups, about €1 for the domain, and roughly
 $5–20 for LLM calls after hashing unchanged pages. Cloudflare, Healthchecks.io, Sentry, and
 UptimeRobot can start on free tiers, giving a total of approximately **€25–45 per month**.
+
+## AI notes
+
+I used Google Gemini through its REST `generateContent` API to turn page text into JSON records.
+Gemini initially returned incomplete JSON, which caused an unterminated-string parse error.
+I caught this by validating the response with `json.JSONDecoder` and requiring exactly three records.
+I also checked every extracted number against the fetched page text and flagged mismatches for review.
+The final output is stored in `bonuses.json`, so the published page does not call the AI service.
+
+## Time spent
+
+Approximately 1 hour 45 minutes, including implementation, debugging, local verification, and
+GitHub Pages deployment.
